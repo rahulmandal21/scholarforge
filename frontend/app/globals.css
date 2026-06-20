@@ -1,0 +1,70 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+:root {
+  --background: #fbfbff;
+  --foreground: #11132b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background-color: var(--sf-bg);
+  background-image:
+    radial-gradient(700px circle at 8% 8%, rgba(124, 109, 255, 0.28), transparent 60%),
+    radial-gradient(650px circle at 95% 25%, rgba(82, 142, 255, 0.22), transparent 60%),
+    radial-gradient(750px circle at 5% 95%, rgba(255, 150, 120, 0.24), transparent 60%);
+  background-attachment: fixed;
+  color: var(--sf-ink);
+  font-family: var(--font-body), sans-serif;
+}
+
+/* ===== ScholarForge design tokens (light) ===== */
+:root {
+  --sf-bg: #fbfbff;
+  --sf-ink: #11132b;
+  --sf-text: #4d5170;
+  --sf-text-dim: #80849f;
+  --sf-indigo: #5b5fef;
+  --sf-indigo-soft: rgba(91, 95, 239, 0.12);
+  --sf-indigo-soft-strong: rgba(91, 95, 239, 0.2);
+  --sf-coral: #e2604a;
+  --sf-coral-soft: rgba(226, 96, 74, 0.14);
+  --sf-green: #18a86b;
+  --sf-gold: #e8a33d;
+  --sf-line: #e6e8f2;
+  --sf-card: #ffffff;
+  --sf-card-2: #f4f5fa;
+}
+
+.font-display {
+  font-family: var(--font-display), serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), monospace;
+}
+
+@keyframes sf-flow-x {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+.flow-pulse {
+  animation: sf-flow-x 2.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-pulse {
+    animation: none;
+    opacity: 0.5;
+  }
+}

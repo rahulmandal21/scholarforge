@@ -1,0 +1,33 @@
+# ScholarForge backend dependencies
+# This reflects what's actually imported across Phases 2-10 + the real MCP
+# conversion — not the original planning-doc list, which included several
+# packages (crewai, langchain, PyPDF2, google-api-python-client) that ended
+# up unused once the project was actually built.
+
+# --- Web framework ---
+fastapi
+uvicorn[standard]
+python-multipart   # required for FastAPI's File()/Form() uploads
+
+# --- Core utilities ---
+python-dotenv
+requests
+
+# --- LLM / agent orchestration ---
+groq
+langgraph
+
+# --- Knowledge graph ---
+networkx
+
+# --- Vector store + embeddings ---
+chromadb
+sentence-transformers   # used internally by chromadb's SentenceTransformerEmbeddingFunction
+
+# --- Real MCP protocol (server + client) ---
+mcp>=1.27,<2
+
+# --- External integrations (exposed as MCP tools) ---
+arxiv
+PyGithub
+huggingface_hub
