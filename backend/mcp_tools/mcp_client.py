@@ -23,6 +23,15 @@ from mcp.client.stdio import stdio_client
 
 _SERVER_PATH = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
+# Tool names whose contract is "always returns a list". Used to work around
+# a known FastMCP bug (github.com/jlowin/fastmcp #1064): when a tool's
+# return value is annotated as `list` but the list has exactly one item,
+# FastMCP's serialization sometimes unwraps it down to the bare item
+# instead of a one-element list. We detect and correct that here so
+# callers can always rely on getting a list back, regardless of result
+# count.
+_LIST_RETURNING_TOOLS = {"find_hf_models", "search_arxiv"}
+
 
 def _extract_result(call_tool_result) -> object:
     """
@@ -60,7 +69,13 @@ async def _call_tools_async(calls: list) -> list:
             await session.initialize()
             for tool_name, arguments in calls:
                 raw_result = await session.call_tool(tool_name, arguments=arguments)
-                results.append(_extract_result(raw_result))
+                extracted = _extract_result(raw_result)
+                if tool_name in _LIST_RETURNING_TOOLS and isinstance(extracted, dict):
+                    # FastMCP unwrapped a single-item list down to the bare
+                    # dict (see _LIST_RETURNING_TOOLS comment above) — put
+                    # it back in a list so callers get a consistent shape.
+                    extracted = [extracted]
+                results.append(extracted)
     return results
 
 
