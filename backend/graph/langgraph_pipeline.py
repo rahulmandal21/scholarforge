@@ -104,6 +104,7 @@ class PipelineState(TypedDict):
     eval_results: dict
     github_url: str
     hf_models: list
+    arxiv_papers: list
     status_message: str
 
 
@@ -222,23 +223,34 @@ def mcp_push_node(state: PipelineState) -> dict:
     github_token = state.get("github_token", "")
 
     if not generated_codes:
-        return {"github_url": "", "hf_models": [], "status_message": "Skipped MCP push (no generated code)."}
+        return {
+            "github_url": "",
+            "hf_models": [],
+            "arxiv_papers": [],
+            "status_message": "Skipped MCP push (no generated code).",
+        }
 
-    # HuggingFace search needs no per-user credential, so it always runs.
-    # GitHub push is conditional on the requesting user having supplied
-    # their own token — without one, we skip the push entirely rather than
-    # falling back to the server operator's own GitHub account. Without
-    # this, every visitor's generated code would land in *your* GitHub,
-    # not theirs, the moment this is deployed for others to use.
-    calls = [("find_hf_models", {"task": "machine learning", "paper_title": title, "top_k": 5})]
+    # HuggingFace and Arxiv searches need no per-user credential, so they
+    # always run. GitHub push is conditional on the requesting user having
+    # supplied their own token — without one, we skip the push entirely
+    # rather than falling back to the server operator's own GitHub account.
+    # Without this, every visitor's generated code would land in *your*
+    # GitHub, not theirs, the moment this is deployed for others to use.
+    #
+    # `calls` is built as a list of (tool_name, arguments) tuples and each
+    # entry's position is tracked by name in `call_names` below, rather than
+    # relying on fixed indices — this keeps the result-unpacking correct
+    # regardless of which optional calls (currently just GitHub) end up
+    # included.
+    calls = []
+    call_names = []
 
-    github_url = ""
     if github_token:
         files = {f"{name}.py": code for name, code in generated_codes.items()}
-        # Append a short unique suffix so re-running the pipeline on the same paper
-        # doesn't collide with a previously created repo of the same name.
+        # Append a short unique suffix so re-running the pipeline on the same
+        # paper doesn't collide with a previously created repo of the same name.
         repo_name = f"{_slugify(title)}-{uuid.uuid4().hex[:6]}"
-        calls.insert(0, (
+        calls.append((
             "push_to_github",
             {
                 "repo_name": repo_name,
@@ -247,26 +259,42 @@ def mcp_push_node(state: PipelineState) -> dict:
                 "token": github_token,
             },
         ))
+        call_names.append("github")
 
-    # Both calls go through the real MCP protocol (mcp_client.py spawns
+    calls.append(("find_hf_models", {"task": "machine learning", "paper_title": title, "top_k": 5}))
+    call_names.append("hf_models")
+
+    calls.append(("search_arxiv", {"query": title, "max_results": 5}))
+    call_names.append("arxiv_papers")
+
+    # All calls go through the real MCP protocol (mcp_client.py spawns
     # mcp_server.py as a subprocess and talks JSON-RPC over stdio) rather
-    # than calling github_mcp/hf_mcp's functions directly in-process.
+    # than calling github_mcp/hf_mcp/arxiv_mcp's functions directly in-process.
     results = call_mcp_tools(calls)
+    by_name = dict(zip(call_names, results))
+
+    github_url = by_name.get("github", "")
+    hf_models = by_name.get("hf_models", [])
+    arxiv_papers = by_name.get("arxiv_papers", [])
+
+    found_parts = []
+    if hf_models:
+        found_parts.append("related HuggingFace models")
+    if arxiv_papers:
+        found_parts.append("related Arxiv papers")
+    found_summary = " and ".join(found_parts) if found_parts else "no related resources"
 
     if github_token:
-        github_url, hf_models = results[0], results[1]
-        message = "Pushed to GitHub and found related HuggingFace models."
+        message = f"Pushed to GitHub and found {found_summary}."
     else:
-        hf_models = results[0]
-        message = "Found related HuggingFace models. (GitHub push skipped — no token provided.)"
+        message = f"Found {found_summary}. (GitHub push skipped — no token provided.)"
 
     return {
         "github_url": github_url,
         "hf_models": hf_models,
+        "arxiv_papers": arxiv_papers,
         "status_message": message,
     }
-
-
 _compiled_graph = None
 
 

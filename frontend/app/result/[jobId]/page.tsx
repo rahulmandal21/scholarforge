@@ -6,7 +6,7 @@ import { AlertTriangle } from "lucide-react";
 import PipelineProgress from "@/components/PipelineProgress";
 import KnowledgeGraph, { type KGNode, type KGEdge } from "@/components/KnowledgeGraph";
 import CodeViewer, { type EvalResult } from "@/components/CodeViewer";
-import ResultCard, { type HFModel } from "@/components/ResultCard";
+import ResultCard, { type HFModel, type ArxivPaper } from "@/components/ResultCard";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -20,6 +20,7 @@ interface PipelineResult {
   eval_results: Record<string, EvalResult>;
   github_url: string;
   hf_models: HFModel[];
+  arxiv_papers?: ArxivPaper[];
 }
 
 export default function ResultPage() {
@@ -157,6 +158,7 @@ export default function ResultPage() {
               <ResultCard
                 githubUrl={result.github_url ?? ""}
                 hfModels={result.hf_models ?? []}
+                arxivPapers={result.arxiv_papers ?? []}
               />
             </section>
           </div>

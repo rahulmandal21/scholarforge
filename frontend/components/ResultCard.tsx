@@ -1,4 +1,4 @@
-import { ExternalLink, Download } from "lucide-react";
+import { ExternalLink, Download, FileText } from "lucide-react";
 
 function GithubIcon({ className }: { className?: string }) {
   return (
@@ -20,12 +20,24 @@ export interface HFModel {
   model_url: string;
 }
 
+export interface ArxivPaper {
+  title: string;
+  authors: string[];
+  pdf_url: string;
+  published_date?: string;
+}
+
 interface ResultCardProps {
   githubUrl: string;
   hfModels: HFModel[];
+  arxivPapers?: ArxivPaper[];
 }
 
-export default function ResultCard({ githubUrl, hfModels }: ResultCardProps) {
+export default function ResultCard({
+  githubUrl,
+  hfModels,
+  arxivPapers = [],
+}: ResultCardProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {githubUrl && (
@@ -75,6 +87,29 @@ export default function ResultCard({ githubUrl, hfModels }: ResultCardProps) {
                   <span className="shrink-0 text-slate-300">
                     {model.downloads.toLocaleString()}
                   </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {arxivPapers.length > 0 && (
+        <div className="rounded-2xl border border-slate-100 bg-white p-5">
+          <p className="mb-3 text-sm font-semibold text-slate-800">
+            Related Arxiv papers
+          </p>
+          <ul className="space-y-2">
+            {arxivPapers.slice(0, 4).map((paper) => (
+              <li key={paper.pdf_url}>
+                <a
+                  href={paper.pdf_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-600"
+                >
+                  <FileText className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{paper.title}</span>
                 </a>
               </li>
             ))}
