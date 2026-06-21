@@ -79,9 +79,7 @@ def _extract_references(root) -> list:
 
         # Authors
         authors = []
-        author_els = bs.findall(".//tei:analytic/tei:author") or bs.findall(
-            ".//tei:monogr/tei:author"
-        )
+        
         for a in bs.findall(".//tei:author", TEI_NS):
             forename = a.find(".//tei:forename", TEI_NS)
             surname = a.find(".//tei:surname", TEI_NS)
