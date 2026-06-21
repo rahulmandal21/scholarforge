@@ -15,7 +15,7 @@ ScholarForge is an autonomous, multi-agent pipeline that reads any ML research p
 3. **Builds a knowledge graph** mapping how those components depend on each other.
 4. **Retrieves similar past implementations** from a vector store (ChromaDB) to ground code generation.
 5. **Generates code** for each component, then **self-evaluates** it structurally (AST-based scoring against the retrieved reference) and **retries** automatically if the score is too low.
-6. **Pushes the result to GitHub** and surfaces related pretrained models from HuggingFace and related papers from Arxiv — all via the real **Model Context Protocol (MCP)**, not direct API calls.
+6. **Pushes the result to GitHub** and surfaces related pretrained models from HuggingFace — both via the real **Model Context Protocol (MCP)**, not direct API calls. An Arxiv search tool is also implemented and exposed over MCP, but isn't currently wired into the automatic pipeline.
 
 The whole flow is orchestrated as a single LangGraph pipeline, exposed over a FastAPI backend with live progress polling, and consumed by a Next.js frontend.
 
@@ -40,7 +40,8 @@ Vector Store (ChromaDB) ──► retrieve similar implementations
 Codegen + Self-Eval Agent ──► generate code, score (AST), retry on low score
    │
    ▼
-MCP Tools (real MCP protocol) ──► push to GitHub, find HF models, search Arxiv
+MCP Tools (real MCP protocol) ──► push to GitHub, find HF models
+(Arxiv search also implemented as an MCP tool, available but not auto-called in this flow)
 ```
 
 ## Tech stack
